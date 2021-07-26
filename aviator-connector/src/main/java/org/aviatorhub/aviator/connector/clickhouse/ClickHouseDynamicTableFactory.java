@@ -12,13 +12,10 @@ import static org.aviatorhub.aviator.connector.ConnectorConfOptions.USER;
 import java.util.Set;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ReadableConfig;
-import org.apache.flink.table.api.TableSchema;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
-import org.apache.flink.table.connector.sink.DynamicTableSink.Context;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
-import org.apache.flink.table.utils.TableSchemaUtils;
 import org.aviatorhub.aviator.connector.ConnectorConf;
 import org.elasticsearch.common.util.set.Sets;
 
@@ -43,7 +40,7 @@ public class ClickHouseDynamicTableFactory implements DynamicTableSinkFactory {
     conf.setDatabase(config.get(DATABASE));
     conf.setTable(config.get(TABLE));
     conf.setUser(config.get(USER));
-    conf.setPassword(config.get(PASSWD));
+    conf.setPasswd(config.get(PASSWD));
     conf.setParallel(config.get(PARALLEL));
     conf.setSinkBatchSize(config.get(SINK_BATCH_SIZE));
     conf.setSinkFlushInterval(config.get(SINK_FLUSH_INTERVAL));

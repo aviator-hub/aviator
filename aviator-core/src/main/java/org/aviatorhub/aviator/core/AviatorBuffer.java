@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-public class AviatorBuffer<V extends Serializable> implements Serializable{
+public class AviatorBuffer<V> implements Serializable{
 
   private final V[] values;
   private int index = 0;

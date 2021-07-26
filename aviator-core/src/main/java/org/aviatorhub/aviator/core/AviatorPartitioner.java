@@ -1,8 +1,6 @@
 package org.aviatorhub.aviator.core;
 
-import java.io.Serializable;
-
-public interface AviatorPartitioner<V extends Serializable> {
+public interface AviatorPartitioner<V> {
 
   int calcPartition(V v);
 }

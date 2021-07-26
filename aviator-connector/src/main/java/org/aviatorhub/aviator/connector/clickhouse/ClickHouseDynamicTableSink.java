@@ -3,6 +3,7 @@ package org.aviatorhub.aviator.connector.clickhouse;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.types.RowKind;
 import org.aviatorhub.aviator.connector.ConnectorConf;
 
@@ -26,7 +27,7 @@ public class ClickHouseDynamicTableSink implements DynamicTableSink {
 
   @Override
   public SinkRuntimeProvider getSinkRuntimeProvider(Context context) {
-    return null;
+    return SinkFunctionProvider.of(new ClickHouseRowSinkFunction(conf, schema));
   }
 
   @Override

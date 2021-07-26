@@ -2,15 +2,21 @@ package org.aviatorhub.aviator.core;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
-import java.io.Serializable;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.flink.table.catalog.Column;
 
-public abstract class AbstractAviatorFlusher<V extends Serializable> implements AviatorFlusher<V> {
+public abstract class AbstractAviatorFlusher<V> implements AviatorFlusher<V> {
 
-  private final AviatorBufferConf conf;
+  private final int retryCnt;
 
-  public AbstractAviatorFlusher(AviatorBufferConf conf) {
-    this.conf = conf;
+  public AbstractAviatorFlusher(int retryCnt) {
+    this.retryCnt = retryCnt;
+  }
+
+  public AbstractAviatorFlusher(int retryCnt, List<Column> columns) throws Exception {
+    this.retryCnt = retryCnt;
+    validate(columns);
   }
 
   @Override
@@ -32,7 +38,7 @@ public abstract class AbstractAviatorFlusher<V extends Serializable> implements 
     try {
       flush(values);
     } catch (Exception e) {
-      if (retry < conf.getRetryCnt()) {
+      if (retry < retryCnt) {
         doFlush(values, retry + 1);
       } else {
         throw e;
@@ -42,4 +48,5 @@ public abstract class AbstractAviatorFlusher<V extends Serializable> implements 
 
   protected abstract void flush(V[] values) throws Exception;
 
+  protected abstract void validate(List<Column> columns) throws Exception;
 }

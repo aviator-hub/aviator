@@ -3,6 +3,7 @@ package org.aviatorhub.aviator.connector;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.aviatorhub.aviator.core.AviatorBufferConf;
 
 @Getter
 @NoArgsConstructor
@@ -13,7 +14,7 @@ public class ConnectorConf implements Serializable {
   private String database;
   private String table;
   private String user;
-  private String password;
+  private String passwd;
   private Integer parallel = 1;
 
   // lookup join config
@@ -24,6 +25,8 @@ public class ConnectorConf implements Serializable {
   private Integer cacheTime = 300;
 
   // sink config
+  private boolean ordered = true;
+  private Integer sinkRetryCnt= 3;
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
 
@@ -43,8 +46,8 @@ public class ConnectorConf implements Serializable {
     this.user = user;
   }
 
-  public void setPassword(String password) {
-    this.password = password;
+  public void setPasswd(String passwd) {
+    this.passwd = passwd;
   }
 
   public void setParallel(Integer parallel) {
@@ -97,5 +100,21 @@ public class ConnectorConf implements Serializable {
     } else {
       this.sinkFlushInterval = 0;
     }
+  }
+
+  public void setSinkRetryCnt(Integer sinkRetryCnt) {
+    if (sinkRetryCnt != null && sinkRetryCnt >= 0) {
+      this.sinkRetryCnt = sinkRetryCnt;
+    }
+  }
+
+  public AviatorBufferConf getBufferConf() {
+    AviatorBufferConf conf = new AviatorBufferConf();
+    conf.setOrdered(this.ordered);
+    conf.setParallel(this.parallel);
+    conf.setRetryCnt(this.sinkRetryCnt);
+    conf.setTimeoutSeconds(this.sinkFlushInterval);
+    conf.setSize(this.sinkBatchSize);
+    return conf;
   }
 }

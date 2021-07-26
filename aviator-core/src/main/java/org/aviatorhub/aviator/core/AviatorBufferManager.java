@@ -11,7 +11,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class AviatorBufferManager<V extends Serializable> implements Serializable {
+public class AviatorBufferManager<V> {
 
   private final AviatorBufferConf conf;
   private final Class<V> valueClass;
