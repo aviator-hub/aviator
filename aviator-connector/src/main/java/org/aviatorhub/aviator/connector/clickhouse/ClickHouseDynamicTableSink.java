@@ -1,10 +1,20 @@
 package org.aviatorhub.aviator.connector.clickhouse;
 
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.types.RowKind;
+import org.aviatorhub.aviator.connector.ConnectorConf;
 
 public class ClickHouseDynamicTableSink implements DynamicTableSink {
+
+  private final ConnectorConf conf;
+  private final ResolvedSchema schema;
+
+  public ClickHouseDynamicTableSink(ConnectorConf conf, ResolvedSchema schema) {
+    this.conf = conf;
+    this.schema = schema;
+  }
 
   @Override
   public ChangelogMode getChangelogMode(ChangelogMode changelogMode) {
@@ -21,11 +31,11 @@ public class ClickHouseDynamicTableSink implements DynamicTableSink {
 
   @Override
   public DynamicTableSink copy() {
-    return null;
+    return new ClickHouseDynamicTableSink(conf, schema);
   }
 
   @Override
   public String asSummaryString() {
-    return null;
+    return "clickhouse dynamic sink table";
   }
 }

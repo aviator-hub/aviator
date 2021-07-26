@@ -1,13 +1,24 @@
 package org.aviatorhub.aviator.connector.clickhouse;
 
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.ADDRESS;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.DATABASE;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.PARALLEL;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.PASSWD;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.SINK_BATCH_SIZE;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.SINK_FLUSH_INTERVAL;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.TABLE;
+import static org.aviatorhub.aviator.connector.ConnectorConfOptions.USER;
+
 import java.util.Set;
 import org.apache.flink.configuration.ConfigOption;
-import static org.aviatorhub.aviator.connector.ConnectorConfOptions.*;
-
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.TableSchema;
+import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
+import org.apache.flink.table.connector.sink.DynamicTableSink.Context;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
 import org.apache.flink.table.factories.FactoryUtil;
+import org.apache.flink.table.utils.TableSchemaUtils;
 import org.aviatorhub.aviator.connector.ConnectorConf;
 import org.elasticsearch.common.util.set.Sets;
 
@@ -21,7 +32,9 @@ public class ClickHouseDynamicTableFactory implements DynamicTableSinkFactory {
         .createTableFactoryHelper(this, context);
     final ReadableConfig config = helper.getOptions();
     ConnectorConf conf = buildConf(config);
-    return new ClickHouseDynamicTableSink();
+
+    ResolvedSchema schema = context.getCatalogTable().getResolvedSchema();
+    return new ClickHouseDynamicTableSink(conf, schema);
   }
 
   private ConnectorConf buildConf(ReadableConfig config) {
