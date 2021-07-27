@@ -25,7 +25,7 @@ public class ConnectorConf implements Serializable {
   private Integer cacheTime = 300;
 
   // sink config
-  private boolean ordered = true;
+  private Boolean ordered = true;
   private Integer sinkRetryCnt= 3;
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
@@ -106,6 +106,12 @@ public class ConnectorConf implements Serializable {
     if (sinkRetryCnt != null && sinkRetryCnt >= 0) {
       this.sinkRetryCnt = sinkRetryCnt;
     }
+  }
+
+  public void setOrdered(Boolean ordered) {
+    if (ordered != null) {
+      this.ordered = ordered;
+    } // else use default value true.
   }
 
   public AviatorBufferConf getBufferConf() {
