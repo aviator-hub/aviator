@@ -161,10 +161,6 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
     }
   }
 
-  private boolean isNumber(String clickhouseType) {
-    return numberTypes.contains(clickhouseType);
-  }
-
   private String notSupportType(ColumnInfo columnInfo) {
     return format("not supported type {} for column {}",
         columnInfo.getColumnType().getTypeRoot().name(), columnInfo.getColumnName());
