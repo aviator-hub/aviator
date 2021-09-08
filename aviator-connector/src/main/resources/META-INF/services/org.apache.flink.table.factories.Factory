@@ -1,1 +1,1 @@
-org.aviatorhub.aviator.connector.clickhouse.ClickHouseDynamicTableFactory
+io.github.aviatorhub.aviator.connector.clickhouse.ClickHouseDynamicTableFactory
