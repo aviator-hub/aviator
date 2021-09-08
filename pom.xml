@@ -72,6 +72,7 @@
     <lombok.version>1.18.20</lombok.version>
 
     <!-- declare test dependencies version-->
+    <junit.version>4.12</junit.version>
     <testcontainers.version>1.16.0</testcontainers.version>
   </properties>
 

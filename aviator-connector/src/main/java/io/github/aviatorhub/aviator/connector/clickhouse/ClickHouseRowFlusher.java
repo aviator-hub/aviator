@@ -2,7 +2,12 @@ package io.github.aviatorhub.aviator.connector.clickhouse;
 
 import static java.lang.String.format;
 
+import com.google.common.annotations.VisibleForTesting;
+import io.github.aviatorhub.aviator.connector.ColumnInfo;
 import io.github.aviatorhub.aviator.connector.ConnectorConf;
+import io.github.aviatorhub.aviator.connector.exception.ColumnNameNotMatchedException;
+import io.github.aviatorhub.aviator.connector.exception.ColumnTypeNotMatchedException;
+import io.github.aviatorhub.aviator.core.AbstractAviatorFlusher;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -22,9 +27,6 @@ import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.logical.LogicalTypeRoot;
 import org.apache.flink.table.types.logical.TimestampType;
-import io.github.aviatorhub.aviator.connector.ColumnInfo;
-import io.github.aviatorhub.aviator.connector.exception.FlusherValidateException;
-import io.github.aviatorhub.aviator.core.AbstractAviatorFlusher;
 import org.elasticsearch.common.util.set.Sets;
 import ru.yandex.clickhouse.BalancedClickhouseDataSource;
 import ru.yandex.clickhouse.ClickHouseConnection;
@@ -95,8 +97,9 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
     return dataSource.getConnection();
   }
 
+  @VisibleForTesting
   @Override
-  protected void validate(List<Column> columns) throws Exception {
+  public void validate(List<Column> columns) throws Exception {
 
     columnMap = columns.stream()
         .collect(Collectors.toMap(Column::getName, column -> {
@@ -148,15 +151,15 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
         }
       }
 
-      if (!nameNotMatchedMsgList.isEmpty() ||
-          !typeNotMatchedMsgList.isEmpty()) {
+      if (!nameNotMatchedMsgList.isEmpty()) {
         String nameNotMatchedMsg = StringUtils
-            .defaultString(
-                StringUtils.join(nameNotMatchedMsgList, "\n") + "\n",
-                "");
+            .defaultString(StringUtils.join(nameNotMatchedMsgList, "\n"));
+        throw new ColumnNameNotMatchedException(nameNotMatchedMsg);
+      }
+      if (!typeNotMatchedMsgList.isEmpty()) {
         String typeNotMatchedMsg = StringUtils
             .defaultString(StringUtils.join(typeNotMatchedMsgList, "\n"));
-        throw new FlusherValidateException(nameNotMatchedMsg + typeNotMatchedMsg);
+        throw new ColumnTypeNotMatchedException(typeNotMatchedMsg);
       }
     }
   }
@@ -203,7 +206,7 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
               if (row.isNullAt(i)) {
                 stream.writeUInt16(0);
               } else {
-                int value = Math.max(row.getInt(i),0);
+                int value = Math.max(row.getInt(i), 0);
                 stream.writeUInt16(value);
               }
             } else if ("UInt32".equals(columnInfo.getStoreColumnType())) {
@@ -256,7 +259,8 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
               } else {
                 stream.writeFloat64(row.getDouble(i));
               }
-            } else if (Sets.newHashSet("Date", "DateTime").contains(columnInfo.getStoreColumnType())) {
+            } else if (Sets.newHashSet("Date", "DateTime")
+                .contains(columnInfo.getStoreColumnType())) {
               if (row.isNullAt(i)) {
                 stream.writeDate(new Date(0));
               } else {
@@ -266,7 +270,8 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
                   Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
                   stream.writeDate(date);
                 } else {
-                  TimestampData timestamp = row.getTimestamp(i, ((TimestampType) columnInfo.getColumnType()).getPrecision());
+                  TimestampData timestamp = row
+                      .getTimestamp(i, ((TimestampType) columnInfo.getColumnType()).getPrecision());
                   stream.writeDateTime(new Date(timestamp.getMillisecond()));
                 }
               }
