@@ -30,6 +30,9 @@ public class ConnectorConf implements Serializable {
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
 
+  private String keyPrefix;
+  private Integer dataExpireSecond;
+
   public void setAddress(String address) {
     this.address = address;
   }
@@ -78,7 +81,7 @@ public class ConnectorConf implements Serializable {
   }
 
   public void setCacheTime(Integer cacheTime) {
-    if (cacheTime == null && cacheTime > 0) {
+    if (cacheTime != null && cacheTime > 0) {
       this.cacheTime = cacheTime;
     } else {
       cacheTime = 0;
@@ -114,6 +117,14 @@ public class ConnectorConf implements Serializable {
     } // else use default value true.
   }
 
+  public void setKeyPrefix(String keyPrefix) {
+    this.keyPrefix = keyPrefix;
+  }
+
+  public void setDataExpireSecond(Integer dataExpireSecond) {
+    this.dataExpireSecond = dataExpireSecond;
+  }
+
   public AviatorBufferConf getBufferConf() {
     AviatorBufferConf conf = new AviatorBufferConf();
     conf.setOrdered(this.ordered);
@@ -123,4 +134,5 @@ public class ConnectorConf implements Serializable {
     conf.setSize(this.sinkBatchSize);
     return conf;
   }
+
 }

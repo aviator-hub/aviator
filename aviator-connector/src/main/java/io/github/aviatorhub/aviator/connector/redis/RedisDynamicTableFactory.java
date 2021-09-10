@@ -1,27 +1,24 @@
-package io.github.aviatorhub.aviator.connector.clickhouse;
+package io.github.aviatorhub.aviator.connector.redis;
 
+import com.google.common.collect.Sets;
 import io.github.aviatorhub.aviator.connector.AbstractAviatorDynamicTableFactory;
 import io.github.aviatorhub.aviator.connector.ConnectorConf;
 import io.github.aviatorhub.aviator.connector.ConnectorConfOptions;
 import java.util.Set;
 import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
-import org.apache.flink.table.factories.FactoryUtil;
-import org.elasticsearch.common.util.set.Sets;
 
-public class ClickHouseDynamicTableFactory extends AbstractAviatorDynamicTableFactory implements
-    DynamicTableSinkFactory {
+public class RedisDynamicTableFactory extends AbstractAviatorDynamicTableFactory implements DynamicTableSinkFactory {
 
-  private static final String IDENTIFIER = "aviator-clickhouse";
+  public static String IDENTIFIER = "aviator-redis";
 
   @Override
   public DynamicTableSink createDynamicTableSink(Context context) {
     ConnectorConf conf = buildConnectorConf(context);
-    ResolvedSchema schema = context.getCatalogTable().getResolvedSchema();
-    return new ClickHouseDynamicTableSink(conf, schema);
+    ResolvedSchema resolvedSchema = context.getCatalogTable().getResolvedSchema();
+    return new RedisDynamicTableSink(conf, resolvedSchema);
   }
 
   @Override
@@ -32,20 +29,22 @@ public class ClickHouseDynamicTableFactory extends AbstractAviatorDynamicTableFa
   @Override
   public Set<ConfigOption<?>> requiredOptions() {
     return Sets.newHashSet(
-        ConnectorConfOptions.ADDRESS,
-        ConnectorConfOptions.TABLE,
-        ConnectorConfOptions.USER,
-        ConnectorConfOptions.PASSWD
+        ConnectorConfOptions.ADDRESS
     );
   }
 
   @Override
   public Set<ConfigOption<?>> optionalOptions() {
     return Sets.newHashSet(
-        ConnectorConfOptions.DATABASE,
+        ConnectorConfOptions.KEY_PREFIX,
+        ConnectorConfOptions.USER,
+        ConnectorConfOptions.PASSWD,
+
         ConnectorConfOptions.PARALLEL,
         ConnectorConfOptions.SINK_BATCH_SIZE,
-        ConnectorConfOptions.SINK_FLUSH_INTERVAL
+        ConnectorConfOptions.SINK_FLUSH_INTERVAL,
+        ConnectorConfOptions.SINK_ORDERED,
+        ConnectorConfOptions.SINK_DATA_EXPIRE
     );
   }
 }
