@@ -1,7 +1,8 @@
 package io.github.aviatorhub.aviator.connector;
 
-import io.github.aviatorhub.aviator.connector.redis.RedisClient;
+import io.github.aviatorhub.aviator.connector.redis.RedisConnectionProvider;
 import io.github.aviatorhub.aviator.connector.redis.RedisRowFlusher;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.cluster.api.sync.RedisAdvancedClusterCommands;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import org.apache.flink.table.catalog.Column;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.catalog.UniqueConstraint;
 import org.apache.flink.table.data.GenericRowData;
+import org.apache.flink.table.data.binary.BinaryStringData;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,6 +44,7 @@ public class RedisRowFlusherTest {
     ConnectorConf conf = new ConnectorConf();
     conf.setKeyPrefix("test_");
     conf.setAddress(host + ":" + port);
+    conf.setEnvMode(EnvMode.SINGLETON);
 
     ResolvedSchema schema = buildSchema();
     KeyExtractor keyExtractor = KeyExtractor.createKeyExtractor(schema, "_");
@@ -51,15 +54,15 @@ public class RedisRowFlusherTest {
     RedisRowFlusher flusher = new RedisRowFlusher(conf, keyExtractor, valueConverter);
 
     GenericRowData[] rows = new GenericRowData[]{
-        GenericRowData.of(1, 1, "test"),
-        GenericRowData.of(2, 2, "test1"),
-        GenericRowData.of(1, 1, "test2")
+        GenericRowData.of(1, 1, new BinaryStringData("test")),
+        GenericRowData.of(2, 2, new BinaryStringData("test1")),
+        GenericRowData.of(1, 1, new BinaryStringData("test2"))
     };
     flusher.onFlush(rows);
 
-    RedisClient redisClient = new RedisClient(conf);
-    RedisAdvancedClusterCommands<String, String> sync = redisClient.getConnection().sync();
-    Assert.assertEquals("test2", sync.get("test_1"));
+    RedisConnectionProvider redisClient = new RedisConnectionProvider(conf);
+    RedisCommands<String, String> sync = redisClient.getConnection().sync();
+    Assert.assertEquals("{\"id\":1,\"counter\":1,\"topic\":\"test2\"}", sync.get("test_1"));
   }
 
   private ResolvedSchema buildSchema() {
@@ -67,7 +70,7 @@ public class RedisRowFlusherTest {
         Arrays.asList(
             Column.physical("id", DataTypes.INT().notNull()),
             Column.physical("counter", DataTypes.INT().notNull()),
-            Column.physical("topic", DataTypes.STRING().notNull())),
+            Column.physical("topic", DataTypes.VARCHAR(100).notNull())),
         new LinkedList<>(),
         UniqueConstraint.primaryKey(
             "primary_constraint", Collections.singletonList("id")));

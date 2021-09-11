@@ -1,6 +1,7 @@
 package io.github.aviatorhub.aviator.connector.redis;
 
 import io.github.aviatorhub.aviator.connector.ConnectorConf;
+import io.github.aviatorhub.aviator.connector.EnvMode;
 import io.github.aviatorhub.aviator.connector.KeyExtractor;
 import io.github.aviatorhub.aviator.core.AbstractAviatorFlusher;
 import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
@@ -24,8 +25,7 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
   private final KeyExtractor keyExtractor;
   private final RowDataToJsonConverter valueConverter;
 
-  private final RedisClient client;
-  private StatefulRedisClusterConnection<String, String> connection;
+  private final RedisConnectionProvider client;
   private BatchingCommands batch;
   private final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -38,16 +38,18 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
     this.keyExtractor = keyExtractor;
     this.valueConverter = valueConverter;
 
-    this.client = new RedisClient(conf);
+    this.client = new RedisConnectionProvider(conf);
     checkAndPrepareBatchingApi();
   }
 
   private synchronized void checkAndPrepareBatchingApi() {
-    if (connection == null || !connection.isOpen()) {
-      connection = client.getConnection();
+    if (conf.getEnvMode().equals(EnvMode.CLUSTER)) {
+      RedisCommandFactory factory = new RedisCommandFactory(client.getClusterConnection());
+      batch = factory.getCommands(BatchingCommands.class);
+    } else {
+      RedisCommandFactory factory = new RedisCommandFactory(client.getConnection());
+      batch = factory.getCommands(BatchingCommands.class);
     }
-    RedisCommandFactory factory = new RedisCommandFactory(this.connection);
-    batch = factory.getCommands(BatchingCommands.class);
   }
 
   @Override
@@ -61,13 +63,20 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
       int i = 1;
       for (Entry<String, String> entry : keyValueMap.entrySet()) {
         if (i == keyValueMap.size()) {
-          batch.set(conf.getKeyPrefix() + entry.getKey(), entry.getValue(),
-              CommandBatching.queue());
-          batch.expire(conf.getKeyPrefix() + entry.getKey(), conf.getDataExpireSecond(),
-              CommandBatching.flush());
+            if (conf.getDataExpireSecond() != null && conf.getDataExpireSecond() > 0) {
+              batch.set(conf.getKeyPrefix() + entry.getKey(), entry.getValue(),
+                  CommandBatching.queue());
+              batch.expire(conf.getKeyPrefix() + entry.getKey(), conf.getDataExpireSecond(),
+                  CommandBatching.flush());
+            } else {
+              batch.set(conf.getKeyPrefix() + entry.getKey(), entry.getValue(),
+                  CommandBatching.flush());
+            }
         } else {
           batch.set(entry.getKey(), entry.getValue(), CommandBatching.queue());
-          batch.expire(entry.getKey(), conf.getDataExpireSecond(), CommandBatching.queue());
+          if (conf.getDataExpireSecond() != null && conf.getDataExpireSecond() > 0) {
+            batch.expire(entry.getKey(), conf.getDataExpireSecond(), CommandBatching.queue());
+          }
         }
         i++;
       }
@@ -75,15 +84,25 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
       for (int i = 0; i < values.length; i++) {
         RowData value = values[i];
         if (i == values.length - 1) {
-          batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
-              CommandBatching.queue());
-          batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value), conf.getDataExpireSecond(),
-              CommandBatching.flush());
+
+          if (conf.getDataExpireSecond() != null && conf.getDataExpireSecond() > 0) {
+            batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
+                CommandBatching.queue());
+            batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value),
+                conf.getDataExpireSecond(),
+                CommandBatching.flush());
+          } else {
+            batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
+                CommandBatching.flush());
+          }
         } else {
           batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
               CommandBatching.queue());
-          batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value), conf.getDataExpireSecond(),
-              CommandBatching.queue());
+          if (conf.getDataExpireSecond() != null && conf.getDataExpireSecond() > 0) {
+            batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value),
+                conf.getDataExpireSecond(),
+                CommandBatching.queue());
+          }
         }
       }
     }

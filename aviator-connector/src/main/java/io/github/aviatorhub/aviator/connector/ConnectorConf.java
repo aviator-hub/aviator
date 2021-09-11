@@ -1,9 +1,9 @@
 package io.github.aviatorhub.aviator.connector;
 
+import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import org.apache.commons.lang3.StringUtils;
 
 @Getter
@@ -30,10 +30,12 @@ public class ConnectorConf implements Serializable {
   private Integer sinkRetryCnt= 3;
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
-  private Boolean sinkBufferCompaction;
+  private Boolean sinkBufferCompaction = false;
 
-  private String keyPrefix;
+  private String keyPrefix = "";
   private Integer dataExpireSecond;
+
+  private EnvMode envMode = EnvMode.CLUSTER ;
 
   public void setAddress(String address) {
     this.address = address;
@@ -129,6 +131,10 @@ public class ConnectorConf implements Serializable {
 
   public void setSinkBufferCompaction(Boolean sinkBufferCompaction) {
     this.sinkBufferCompaction = sinkBufferCompaction;
+  }
+
+  public void setEnvMode(EnvMode envMode) {
+    this.envMode = envMode;
   }
 
   public AviatorBufferConf getBufferConf() {
