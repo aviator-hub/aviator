@@ -4,12 +4,20 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+@Slf4j
 public class AviatorBufferManager<V> {
 
   private final AviatorBufferConf conf;
@@ -64,14 +72,24 @@ public class AviatorBufferManager<V> {
         } else {
           flush(values);
         }
-      }finally {
+      } finally {
         checkpointLock.readLock().unlock();
       }
     }
   }
 
   public void startTimeoutTrigger() {
-
+    Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactoryBuilder()
+                .setDaemon(true)
+                .setNameFormat("aviator-buffer-manager-timeout-" + "-%d")
+                .setUncaughtExceptionHandler((thread, throwable) ->
+                    log.error(thread.getName() + " execute failure with uncaught exception", throwable))
+                .build())
+        .scheduleAtFixedRate(this::timeout,
+            conf.getTimeoutSeconds(),
+            conf.getTimeoutSeconds(),
+            TimeUnit.SECONDS);
   }
 
   public void checkpoint() throws Exception {
@@ -151,7 +169,6 @@ public class AviatorBufferManager<V> {
       }
     }
   }
-
 
 
 }
