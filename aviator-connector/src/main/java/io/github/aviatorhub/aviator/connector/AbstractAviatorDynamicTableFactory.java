@@ -67,6 +67,8 @@ public abstract class AbstractAviatorDynamicTableFactory implements DynamicTable
       case "sink.data-expire":
         conf.setDataExpireSecond(readable.get(SINK_DATA_EXPIRE));
         break;
+      case "sink.buffer-compaction":
+
       default:
         throw new RuntimeException(option.key()
             + " is not supported for "

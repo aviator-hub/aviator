@@ -29,6 +29,7 @@ public class ConnectorConf implements Serializable {
   private Integer sinkRetryCnt= 3;
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
+  private Boolean sinkBufferCompaction;
 
   private String keyPrefix;
   private Integer dataExpireSecond;
@@ -123,6 +124,10 @@ public class ConnectorConf implements Serializable {
 
   public void setDataExpireSecond(Integer dataExpireSecond) {
     this.dataExpireSecond = dataExpireSecond;
+  }
+
+  public void setSinkBufferCompaction(Boolean sinkBufferCompaction) {
+    this.sinkBufferCompaction = sinkBufferCompaction;
   }
 
   public AviatorBufferConf getBufferConf() {

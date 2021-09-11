@@ -1,6 +1,5 @@
 package io.github.aviatorhub.aviator.connector;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.apache.flink.configuration.ConfigOption;
 import org.apache.flink.configuration.ConfigOptions;
 
@@ -73,5 +72,11 @@ public class ConnectorConfOptions {
       .intType()
       .noDefaultValue()
       .withDescription("the expire seconds for sinking data.");
+
+  public static final ConfigOption<Boolean> SINK_BUFFER_COMPACTION = ConfigOptions
+      .key("sink.buffer-compaction")
+      .booleanType()
+      .defaultValue(false)
+      .withDescription("compact buffer data and only reserve latest data with same key before sinking");
 
 }

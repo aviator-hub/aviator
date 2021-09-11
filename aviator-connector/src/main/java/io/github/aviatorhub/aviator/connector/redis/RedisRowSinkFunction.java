@@ -37,7 +37,7 @@ public class RedisRowSinkFunction extends RichSinkFunction<RowData> implements C
   @Override
   public void open(Configuration parameters) throws Exception {
     super.open(parameters);
-    flusher = new RedisRowFlusher(conf);
+    flusher = new RedisRowFlusher(conf, keyExtractor, valueConverter);
     partitioner = new AviatorRowPartitioner();
     bufferManager = new AviatorBufferManager(conf.getBufferConf(),
         RowData.class, partitioner, flusher);
