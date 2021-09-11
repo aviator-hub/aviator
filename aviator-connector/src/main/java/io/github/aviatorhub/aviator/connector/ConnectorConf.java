@@ -1,9 +1,10 @@
 package io.github.aviatorhub.aviator.connector;
 
+import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import io.github.aviatorhub.aviator.core.AviatorBufferConf;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor
@@ -29,6 +30,12 @@ public class ConnectorConf implements Serializable {
   private Integer sinkRetryCnt= 3;
   private Integer sinkBatchSize = 5000;
   private Integer sinkFlushInterval = 5;
+  private Boolean sinkBufferCompaction = false;
+
+  private String keyPrefix = "";
+  private Integer dataExpireSecond;
+
+  private EnvMode envMode = EnvMode.CLUSTER ;
 
   public void setAddress(String address) {
     this.address = address;
@@ -78,7 +85,7 @@ public class ConnectorConf implements Serializable {
   }
 
   public void setCacheTime(Integer cacheTime) {
-    if (cacheTime == null && cacheTime > 0) {
+    if (cacheTime != null && cacheTime > 0) {
       this.cacheTime = cacheTime;
     } else {
       cacheTime = 0;
@@ -114,6 +121,22 @@ public class ConnectorConf implements Serializable {
     } // else use default value true.
   }
 
+  public void setKeyPrefix(String keyPrefix) {
+    this.keyPrefix = StringUtils.defaultString(keyPrefix);
+  }
+
+  public void setDataExpireSecond(Integer dataExpireSecond) {
+    this.dataExpireSecond = dataExpireSecond;
+  }
+
+  public void setSinkBufferCompaction(Boolean sinkBufferCompaction) {
+    this.sinkBufferCompaction = sinkBufferCompaction;
+  }
+
+  public void setEnvMode(EnvMode envMode) {
+    this.envMode = envMode;
+  }
+
   public AviatorBufferConf getBufferConf() {
     AviatorBufferConf conf = new AviatorBufferConf();
     conf.setOrdered(this.ordered);
@@ -123,4 +146,5 @@ public class ConnectorConf implements Serializable {
     conf.setSize(this.sinkBatchSize);
     return conf;
   }
+
 }

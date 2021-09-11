@@ -5,8 +5,8 @@ import static java.lang.String.format;
 import com.google.common.annotations.VisibleForTesting;
 import io.github.aviatorhub.aviator.connector.ColumnInfo;
 import io.github.aviatorhub.aviator.connector.ConnectorConf;
-import io.github.aviatorhub.aviator.connector.exception.ColumnNameNotMatchedException;
-import io.github.aviatorhub.aviator.connector.exception.ColumnTypeNotMatchedException;
+import io.github.aviatorhub.aviator.connector.exception.NameNotMatchedException;
+import io.github.aviatorhub.aviator.connector.exception.TypeNotMatchedException;
 import io.github.aviatorhub.aviator.core.AbstractAviatorFlusher;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -154,12 +154,12 @@ public class ClickHouseRowFlusher extends AbstractAviatorFlusher<RowData> {
       if (!nameNotMatchedMsgList.isEmpty()) {
         String nameNotMatchedMsg = StringUtils
             .defaultString(StringUtils.join(nameNotMatchedMsgList, "\n"));
-        throw new ColumnNameNotMatchedException(nameNotMatchedMsg);
+        throw new NameNotMatchedException(nameNotMatchedMsg);
       }
       if (!typeNotMatchedMsgList.isEmpty()) {
         String typeNotMatchedMsg = StringUtils
             .defaultString(StringUtils.join(typeNotMatchedMsgList, "\n"));
-        throw new ColumnTypeNotMatchedException(typeNotMatchedMsg);
+        throw new TypeNotMatchedException(typeNotMatchedMsg);
       }
     }
   }

@@ -24,6 +24,12 @@
     </dependency>
 
     <dependency>
+      <groupId>io.lettuce</groupId>
+      <artifactId>lettuce-core</artifactId>
+      <version>${lettuce.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>ru.yandex.clickhouse</groupId>
       <artifactId>clickhouse-jdbc</artifactId>
       <version>0.2.6</version>
