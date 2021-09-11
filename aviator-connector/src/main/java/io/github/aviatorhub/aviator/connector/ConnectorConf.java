@@ -4,6 +4,7 @@ import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import io.github.aviatorhub.aviator.core.AviatorBufferConf;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor
@@ -119,7 +120,7 @@ public class ConnectorConf implements Serializable {
   }
 
   public void setKeyPrefix(String keyPrefix) {
-    this.keyPrefix = keyPrefix;
+    this.keyPrefix = StringUtils.defaultString(keyPrefix);
   }
 
   public void setDataExpireSecond(Integer dataExpireSecond) {

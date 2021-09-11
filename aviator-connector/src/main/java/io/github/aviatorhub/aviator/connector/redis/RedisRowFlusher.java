@@ -49,8 +49,10 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
     RedisCommandFactory factory = new RedisCommandFactory(this.connection);
     batch = factory.getCommands(BatchingCommands.class);
   }
+
   @Override
   protected void flush(RowData[] values) throws Exception {
+    // TODO simple the code.
     if (conf.getSinkBufferCompaction()) {
       Map<String, String> keyValueMap = new HashMap<>();
       for (RowData value : values) {
@@ -59,8 +61,10 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
       int i = 1;
       for (Entry<String, String> entry : keyValueMap.entrySet()) {
         if (i == keyValueMap.size()) {
-          batch.set(entry.getKey(), entry.getValue(), CommandBatching.queue());
-          batch.expire(entry.getKey(), conf.getDataExpireSecond(), CommandBatching.flush());
+          batch.set(conf.getKeyPrefix() + entry.getKey(), entry.getValue(),
+              CommandBatching.queue());
+          batch.expire(conf.getKeyPrefix() + entry.getKey(), conf.getDataExpireSecond(),
+              CommandBatching.flush());
         } else {
           batch.set(entry.getKey(), entry.getValue(), CommandBatching.queue());
           batch.expire(entry.getKey(), conf.getDataExpireSecond(), CommandBatching.queue());
@@ -71,11 +75,15 @@ public class RedisRowFlusher extends AbstractAviatorFlusher<RowData> {
       for (int i = 0; i < values.length; i++) {
         RowData value = values[i];
         if (i == values.length - 1) {
-          batch.set(keyExtractor.apply(value), toJsonValue(value), CommandBatching.queue());
-          batch.expire(keyExtractor.apply(value), conf.getDataExpireSecond(), CommandBatching.flush());
+          batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
+              CommandBatching.queue());
+          batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value), conf.getDataExpireSecond(),
+              CommandBatching.flush());
         } else {
-          batch.set(keyExtractor.apply(value), toJsonValue(value), CommandBatching.queue());
-          batch.expire(keyExtractor.apply(value), conf.getDataExpireSecond(), CommandBatching.queue());
+          batch.set(conf.getKeyPrefix() + keyExtractor.apply(value), toJsonValue(value),
+              CommandBatching.queue());
+          batch.expire(conf.getKeyPrefix() + keyExtractor.apply(value), conf.getDataExpireSecond(),
+              CommandBatching.queue());
         }
       }
     }
