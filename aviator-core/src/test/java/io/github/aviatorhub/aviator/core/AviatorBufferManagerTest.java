@@ -1,13 +1,13 @@
 package io.github.aviatorhub.aviator.core;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.apache.flink.table.types.logical.SmallIntType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.utility.ImageNameSubstitutor;
 
 public class AviatorBufferManagerTest {
 
@@ -16,7 +16,7 @@ public class AviatorBufferManagerTest {
   @Before
   public void before() {
     conf = new AviatorBufferConf();
-    conf.setOrdered(false);
+    conf.setOrdered(true);
     conf.setParallel(4);
     conf.setRetryCnt(0);
     conf.setSize(10);
@@ -24,19 +24,27 @@ public class AviatorBufferManagerTest {
   }
 
   @Test
-  public void testBase() throws InterruptedException {
-    final long testCnt = 1_000_000;
+  public void testBase() throws Exception {
+    baseSinkDataTest(conf);
+    AviatorBufferConf copy = conf.clone();
+    copy.setOrdered(false);
+    baseSinkDataTest(copy);
+  }
+
+  private void baseSinkDataTest(AviatorBufferConf bufferConf) throws Exception {
+    final long testCnt = 10_000_000;
     final AviatorMockFlusher flusher = new AviatorMockFlusher(0);
     final AviatorBufferManager<Long> manger = new AviatorBufferManager(
-        conf,
+        bufferConf,
         Long.class,
-        new AviatorMockPartitioner(conf),
+        new AviatorMockPartitioner(bufferConf),
         flusher);
     manger.init();
 
-    CountDownLatch latch = new CountDownLatch(conf.getParallel());
-    for (int i = 0; i < conf.getParallel(); i++) {
-      Thread thread = new Thread(() -> {
+    CountDownLatch latch = new CountDownLatch(bufferConf.getParallel());
+    ExecutorService executorService = Executors.newFixedThreadPool(4);
+    for (int i = 0; i < bufferConf.getParallel(); i++) {
+      executorService.submit(() -> {
         for (int j = 0; j < testCnt; j++) {
           try {
             manger.add(1l);
@@ -46,10 +54,10 @@ public class AviatorBufferManagerTest {
         }
         latch.countDown();
       });
-      thread.start();
     }
 
-    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+    ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
+    timeoutScheduler.scheduleAtFixedRate(() -> {
       try {
         manger.checkpoint();
       } catch (Exception e) {
@@ -59,6 +67,10 @@ public class AviatorBufferManagerTest {
 
     manger.startTimeoutTrigger();
     latch.await();
-    Assert.assertEquals(conf.getParallel() * testCnt, flusher.getValue());
+    manger.checkpoint();
+    Assert.assertEquals(bufferConf.getParallel() * testCnt, flusher.getValue());
+    timeoutScheduler.shutdownNow();
+    executorService.shutdownNow();
   }
+
 }

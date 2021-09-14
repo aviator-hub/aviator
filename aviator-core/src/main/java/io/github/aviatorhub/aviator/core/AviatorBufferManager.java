@@ -17,6 +17,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+/**
+ * AviatorBufferManager
+ *
+ * @param <V>
+ * @author meijie
+ */
 @Slf4j
 public class AviatorBufferManager<V> {
 
