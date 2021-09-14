@@ -72,8 +72,6 @@
     <lombok.version>1.18.20</lombok.version>
     <jetbranins.annotations.version>22.0.0</jetbranins.annotations.version>
 
-
-
     <lettuce.version>6.1.4.RELEASE</lettuce.version>
 
     <!-- declare test dependencies version-->
