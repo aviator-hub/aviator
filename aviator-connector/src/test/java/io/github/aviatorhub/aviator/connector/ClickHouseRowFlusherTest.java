@@ -38,18 +38,18 @@ public class ClickHouseRowFlusherTest {
     }
   }
 
-  @Before
-  public void before() throws IOException, SQLException {
-    // create table
-    ClickHouseProperties properties = new ClickHouseProperties();
-    properties.setUser(clickhouse.getUsername());
-    properties.setPassword(clickhouse.getPassword());
-    dataSource = new ClickHouseDataSource(clickhouse.getJdbcUrl(), properties);
-
-    File schemaValidateTableFile = ResourcesUtil.getFile(this.getClass(),
-        "sql" + File.separator + "clickhouse_schema_validate_table.sql");
-    String schemaValidateTableSql = FileUtils.readFileToString(schemaValidateTableFile, "utf-8");
-    createTable(schemaValidateTableSql);
-  }
+//  @Before
+//  public void before() throws IOException, SQLException {
+//    // create table
+//    ClickHouseProperties properties = new ClickHouseProperties();
+//    properties.setUser(clickhouse.getUsername());
+//    properties.setPassword(clickhouse.getPassword());
+//    dataSource = new ClickHouseDataSource(clickhouse.getJdbcUrl(), properties);
+//
+//    File schemaValidateTableFile = ResourcesUtil.getFile(this.getClass(),
+//        "sql" + File.separator + "clickhouse_schema_validate_table.sql");
+//    String schemaValidateTableSql = FileUtils.readFileToString(schemaValidateTableFile, "utf-8");
+//    createTable(schemaValidateTableSql);
+//  }
 
 }

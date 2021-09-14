@@ -148,10 +148,12 @@ public class AviatorBufferManager<V> {
     }
     CompletableFuture.runAsync(() -> {
       try {
-        flusher.onFlush(values, flushing);
+        flusher.onFlush(values);
       } catch (Exception e) {
         exceptionPropagate(e);
         throw new RuntimeException(e);
+      } finally {
+        flushing.set(false);
       }
     });
   }

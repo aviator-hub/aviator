@@ -1,9 +1,6 @@
 package io.github.aviatorhub.aviator.core;
 
-import static org.apache.flink.util.Preconditions.checkNotNull;
-
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.flink.table.catalog.Column;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,16 +20,6 @@ public abstract class AbstractAviatorFlusher<V> implements AviatorFlusher<V> {
   @Override
   public void onFlush(V @NotNull [] values) throws Exception {
     doFlush(values, 0);
-  }
-
-  @Override
-  public void onFlush(V @NotNull [] values, @NotNull AtomicBoolean flushing) throws Exception {
-    checkNotNull(flushing);
-    try {
-      doFlush(values, 0);
-    } finally {
-      flushing.set(false);
-    }
   }
 
   private void doFlush(V[] values, int retry) throws Exception {

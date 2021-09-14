@@ -32,7 +32,7 @@ public class AviatorBufferManagerTest {
   }
 
   private void baseSinkDataTest(AviatorBufferConf bufferConf) throws Exception {
-    final long testCnt = 10_000_000;
+    final long testCnt = 1_000_000;
     final AviatorMockFlusher flusher = new AviatorMockFlusher(0);
     final AviatorBufferManager<Long> manger = new AviatorBufferManager(
         bufferConf,
