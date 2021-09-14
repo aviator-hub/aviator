@@ -70,6 +70,9 @@
     <flink.scope>provided</flink.scope>
     <flink.scala.version>2.12</flink.scala.version>
     <lombok.version>1.18.20</lombok.version>
+    <jetbranins.annotations.version>22.0.0</jetbranins.annotations.version>
+
+
 
     <lettuce.version>6.1.4.RELEASE</lettuce.version>
 
