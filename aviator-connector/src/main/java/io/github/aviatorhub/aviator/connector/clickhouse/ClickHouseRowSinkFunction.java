@@ -46,6 +46,7 @@ public class ClickHouseRowSinkFunction extends RichSinkFunction<RowData> impleme
     partitioner = new AviatorRowPartitioner();
     bufferManager = new AviatorBufferManager(conf.getBufferConf(),
         RowData.class, partitioner, flusher);
+    bufferManager.init();
     bufferManager.startTimeoutTrigger();
   }
 
