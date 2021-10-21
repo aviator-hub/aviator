@@ -7,25 +7,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class AviatorBufferManagerTest {
 
-  private static AviatorBufferConf conf;
 
-  @BeforeAll
-  public static void before() {
-    conf = new AviatorBufferConf();
+  private AviatorBufferConf buildBaseConf() {
+    AviatorBufferConf conf = new AviatorBufferConf();
     conf.setOrdered(true);
     conf.setParallel(4);
     conf.setRetryCnt(0);
     conf.setSize(10);
     conf.setTimeoutSeconds(1);
+    return conf;
   }
 
   @Test
   public void testBase() throws Exception {
+    AviatorBufferConf conf = buildBaseConf();
     baseSinkDataTest(conf);
     AviatorBufferConf copy = conf.clone();
     copy.setOrdered(false);
@@ -48,7 +47,7 @@ public class AviatorBufferManagerTest {
       executorService.submit(() -> {
         for (int j = 0; j < testCnt; j++) {
           try {
-            manger.add(1l);
+            manger.add(1L);
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
