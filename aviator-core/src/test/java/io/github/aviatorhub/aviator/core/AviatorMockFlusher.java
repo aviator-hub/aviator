@@ -15,7 +15,7 @@ public class AviatorMockFlusher extends AbstractAviatorFlusher<Long> {
   @Override
   protected void flush(Long[] values) throws Exception {
     long expected = count.get();
-    while (!count.compareAndSet(expected, expected + 1)) {
+    while (!count.compareAndSet(expected, expected + values.length)) {
       expected = count.get();
     }
   }

@@ -3,11 +3,11 @@ package io.github.aviatorhub.aviator.core;
 import static org.apache.flink.util.Preconditions.checkArgument;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,8 +15,16 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.flink.shaded.guava18.com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.apache.flink.util.CollectionUtil;
 
+/**
+ * AviatorBufferManager
+ *
+ * @param <V>
+ * @author meijie
+ */
 @Slf4j
 public class AviatorBufferManager<V> {
 
@@ -95,11 +103,19 @@ public class AviatorBufferManager<V> {
   public void checkpoint() throws Exception {
     checkpointLock.writeLock().lock();
     try {
+      List<CompletableFuture<Void>> taskList = new LinkedList<>();
       for (int i = 0; i < buffers.length; i++) {
         V[] values = buffers[i].onDrain();
         if (values != null && values.length > 0) {
-          flush(values);
+          if (conf.isOrdered()) {
+            taskList.add(flushOrdered(values, flushingArray[i]));
+          } else {
+            taskList.add(flush(values));
+          }
         }
+      }
+      if (CollectionUtils.isNotEmpty(taskList)) {
+        CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
       }
     } finally {
       checkpointLock.writeLock().unlock();
@@ -110,6 +126,7 @@ public class AviatorBufferManager<V> {
   private void timeout() {
     checkpointLock.readLock().lock();
     try {
+      List<CompletableFuture<Void>> taskList = new LinkedList<>();
       for (int i = 0; i < buffers.length; i++) {
         AviatorBuffer<V> buffer = buffers[i];
         if (System.currentTimeMillis() - buffer.getLastFlushTimestamp()
@@ -117,12 +134,15 @@ public class AviatorBufferManager<V> {
           V[] values = buffer.onDrain();
           if (values != null && values.length > 0) {
             if (conf.isOrdered()) {
-              flushOrdered(values, flushingArray[i]);
+              taskList.add(flushOrdered(values, flushingArray[i]));
             } else {
-              flush(values);
+              taskList.add(flush(values));
             }
           }
         }
+      }
+      if (CollectionUtils.isNotEmpty(taskList)) {
+        CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
       }
     } finally {
       checkpointLock.readLock().unlock();
@@ -136,22 +156,24 @@ public class AviatorBufferManager<V> {
 
   }
 
-  private void flushOrdered(V[] values, AtomicBoolean flushing) {
+  private CompletableFuture<Void> flushOrdered(V[] values, AtomicBoolean flushing) {
     while (!flushing.compareAndSet(false, true)) {
       LockSupport.parkNanos(10000);
     }
-    CompletableFuture.runAsync(() -> {
+    return CompletableFuture.runAsync(() -> {
       try {
-        flusher.onFlush(values, flushing);
+        flusher.onFlush(values);
       } catch (Exception e) {
         exceptionPropagate(e);
         throw new RuntimeException(e);
+      } finally {
+        flushing.set(false);
       }
     });
   }
 
-  private void flush(V[] values) {
-    CompletableFuture.runAsync(() -> {
+  private CompletableFuture<Void> flush(V[] values) {
+    return CompletableFuture.runAsync(() -> {
       try {
         flusher.onFlush(values);
       } catch (Exception e) {
