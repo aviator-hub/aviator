@@ -1,20 +1,21 @@
 package io.github.aviatorhub.aviator.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AviatorBufferManagerTest {
 
-  private AviatorBufferConf conf;
+  private static AviatorBufferConf conf;
 
-  @Before
-  public void before() {
+  @BeforeAll
+  public static void before() {
     conf = new AviatorBufferConf();
     conf.setOrdered(true);
     conf.setParallel(4);
@@ -68,7 +69,7 @@ public class AviatorBufferManagerTest {
     manger.startTimeoutTrigger();
     latch.await();
     manger.checkpoint();
-    Assert.assertEquals(bufferConf.getParallel() * testCnt, flusher.getValue());
+    assertEquals(bufferConf.getParallel() * testCnt, flusher.getValue());
     timeoutScheduler.shutdownNow();
     executorService.shutdownNow();
   }
