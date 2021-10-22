@@ -28,6 +28,12 @@
       <artifactId>yamlbeans</artifactId>
       <version>1.15</version>
     </dependency>
+
+    <dependency>
+      <groupId>io.github.aviator-hub</groupId>
+      <artifactId>aviator-connector</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
 </project>

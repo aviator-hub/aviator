@@ -27,4 +27,7 @@ public @interface ResourceDeclare {
    * declare memory resources to be used by job
    */
   int jobMangeMemory() default 1024;
+
+
+  float managedMemFraction() default 0.4f;
 }

@@ -9,6 +9,11 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface OfflineJob {
+public @interface PerfDeclare {
 
+  boolean twoPhaseAgg() default false;
+
+  boolean miniBatch() default false;
+
+  boolean distinctAggSplit() default false;
 }

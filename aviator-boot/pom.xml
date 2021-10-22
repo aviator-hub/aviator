@@ -7,13 +7,28 @@
     <artifactId>aviator</artifactId>
     <version>0.1-SNAPSHOT</version>
   </parent>
-  <modelVersion>4.0.0</modelVersion>
 
+  <modelVersion>4.0.0</modelVersion>
   <artifactId>aviator-boot</artifactId>
+  <packaging>pom</packaging>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.aviator-hub</groupId>
+      <artifactId>aviator-app</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.aviator-hub</groupId>
+      <artifactId>aviator-cmd</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 
 </project>
