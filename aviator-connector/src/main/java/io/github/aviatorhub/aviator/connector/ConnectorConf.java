@@ -2,13 +2,18 @@ package io.github.aviatorhub.aviator.connector;
 
 import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import java.io.Serializable;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor
+@ToString
 public class ConnectorConf implements Serializable {
+
+  private String name;
 
   // common config
   private String address;
@@ -36,6 +41,8 @@ public class ConnectorConf implements Serializable {
   private Integer dataExpireSecond;
 
   private EnvMode envMode = EnvMode.CLUSTER ;
+
+  private Map<String, String> props;
 
   public void setAddress(String address) {
     this.address = address;
@@ -147,4 +154,11 @@ public class ConnectorConf implements Serializable {
     return conf;
   }
 
+  public void setProps(Map<String, String> props) {
+    this.props = props;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 }

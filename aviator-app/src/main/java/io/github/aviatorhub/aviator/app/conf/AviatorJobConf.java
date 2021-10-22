@@ -13,14 +13,19 @@ import org.apache.flink.streaming.api.CheckpointingMode;
 @NoArgsConstructor
 public class AviatorJobConf {
 
-  // common conf
-  @Parameter(names = {"-v", "-version"},
-      description = "the version of this job, default is empty string")
-  private String version;
-
+  // ===============================================
+  // JOB DECLARE INFORMATION
+  // ===============================================
   @Parameter(names = {"-n", "-name"},
       description = "the name of this job, default is class name")
   private String jobName;
+
+  @Parameter(names = {"-v", "-version"},
+      description = "the version of this job, default is empty string")
+  private int version;
+
+  @Parameter(names = {"-rt", "-realtime"})
+  private boolean realtime;
 
   @Parameter(names = {"-rm", "-running-mode"},
       description = "different running mode may load different configuration, default is TEST")
@@ -40,13 +45,23 @@ public class AviatorJobConf {
   private CheckpointStateBackend checkpointStateBackend;
 
   @Parameter(names = {"-ci", "-checkpoint-interval"},
-  description = "the checkpoint interval for this job, default is 10 minutes")
+      description = "the checkpoint interval for this job, default is 10 minutes")
   private Long checkpointInterval;
+
+  @Parameter(names = {"-cp", "-checkpoint-interval"},
+      description = "the checkpoint hdfs path for this job")
+  private String checkpointPath;
 
 
   // source conf
   private AviatorSourceConf aviatorSourceConf;
 
   // TODO mem conf
-  // TODO perf conf
+
+  // =============================================
+  // == Performance Declare
+  // =============================================
+  private boolean twoPhaseAgg;
+  private boolean miniBatch;
+  private boolean distinctAggSplit;
 }
