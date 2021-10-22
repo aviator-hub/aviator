@@ -22,7 +22,7 @@ import ru.yandex.clickhouse.settings.ClickHouseProperties;
 public class ClickHouseRowFlusherTest {
 
   @Rule
-  protected ClickHouseContainer clickhouse = new ClickHouseContainer(
+  public ClickHouseContainer clickhouse = new ClickHouseContainer(
       DockerImageName.parse("yandex/clickhouse-server").withTag("20.8.19.4"));
   private ClickHouseDataSource dataSource;
 
