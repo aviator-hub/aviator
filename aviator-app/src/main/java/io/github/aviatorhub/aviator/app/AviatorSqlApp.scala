@@ -12,6 +12,7 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.table.api.config.{ExecutionConfigOptions, OptimizerConfigOptions}
 import org.apache.flink.table.api.{EnvironmentSettings, TableEnvironment}
+import org.apache.flink.util.Preconditions.checkNotNull
 
 import java.lang
 import java.util.concurrent.TimeUnit
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit
 class AviatorSqlApp(var jobConf: AviatorJobConf = null,
                     var tableEnv: TableEnvironment = null) {
 
-  def init(args: Array[String]): Unit = {
+  protected def init(args: Array[String]): Unit = {
     initConf()
     prepareTableEnv()
     applyConf()
@@ -36,7 +37,7 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
 
   private def initConf(): Unit = {
     AviatorConfManager.loadAviatorConf()
-    AviatorConfManager.applyJobDeclare(this.getClass)
+    jobConf = AviatorConfManager.applyJobDeclare(this.getClass)
   }
 
   /**
@@ -59,12 +60,12 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
           streamEnv.setStateBackend(new EmbeddedRocksDBStateBackend)
         case _ => // do nothing
       }
-      // TODO support batch mode
-      val settings = EnvironmentSettings.newInstance()
-        .useBlinkPlanner().inStreamingMode().build()
-      tableEnv = StreamTableEnvironment.create(streamEnv, settings)
-    }
 
+    }
+    // TODO support batch mode
+    val settings = EnvironmentSettings.newInstance()
+      .useBlinkPlanner().inStreamingMode().build()
+    tableEnv = StreamTableEnvironment.create(streamEnv, settings)
   }
 
   private def applyConf(): Unit = {
@@ -99,7 +100,7 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
     }
   }
 
-  private def setConfig[T >: AnyRef](option: ConfigOption[T], value: String): Unit = {
+  private def setConfig[T](option: ConfigOption[T], value: String): Unit = {
     tableEnv.getConfig.getConfiguration.setString(option.key(), value)
   }
 
@@ -107,5 +108,14 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
     tableEnv.getConfig.getConfiguration.setBoolean(option.key(), true)
   }
 
+  protected def createPrintTable(schemaStr: String): Unit = {
+    checkNotNull(tableEnv)
+    tableEnv.executeSql(
+      s"""
+         | $schemaStr WITH (
+         |  'connector' = 'print'
+         | )
+         |""".stripMargin)
 
+  }
 }

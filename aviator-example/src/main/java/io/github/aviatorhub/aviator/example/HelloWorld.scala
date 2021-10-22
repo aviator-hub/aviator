@@ -11,6 +11,17 @@ import io.github.aviatorhub.aviator.app.AviatorSqlApp
 object HelloWorld extends AviatorSqlApp() {
 
   def main(args: Array[String]): Unit = {
+    init(args)
+    createPrintTable(
+      s"""
+         | CREATE TABLE HELLO (
+         | `message` varchar
+         | )
+         |""".stripMargin)
 
+    tableEnv.executeSql(
+      """
+        | insert into HELLO VALUES('Hello, World')
+        |""".stripMargin)
   }
 }

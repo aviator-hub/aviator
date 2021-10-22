@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,10 +27,12 @@ public class AviatorConfManager {
   private static final Map<ConnType, Map<String, ConnectorConf>> connMap = new HashMap<>();
 
 
-  public static void applyJobDeclare(Class<? extends AviatorSqlApp> app) {
+  public static AviatorJobConf applyJobDeclare(Class<? extends AviatorSqlApp> app) {
+    AviatorJobConf aviatorJobConf = new AviatorJobConf();
     JobDeclare jobDeclare = app.getAnnotation(JobDeclare.class);
     PerfDeclare perfDeclare = app.getAnnotation(PerfDeclare.class);
     ResourceDeclare resourceDeclare = app.getAnnotation(ResourceDeclare.class);
+    return aviatorJobConf;
   }
 
   public static void loadAviatorConf() throws FileNotFoundException, YamlException {
@@ -38,21 +41,27 @@ public class AviatorConfManager {
 
   public static void loadAviatorConf(String confPath) throws FileNotFoundException, YamlException {
     File confFile = new File(confPath);
-    YamlReader reader = createConfReader(confPath, confFile);
-    AviatorConf conf = reader.read(AviatorConf.class);
-    prepareConnConf(conf.getRedisConns(), ConnType.REDIS);
-    prepareConnConf(conf.getMysqlConns(), ConnType.MYSQL);
-    prepareConnConf(conf.getClickhouseConns(), ConnType.CLICKHOUSE);
+    Optional<YamlReader> readerOpt = createConfReader(confPath, confFile);
+    if (readerOpt.isPresent()) {
+      AviatorConf conf = readerOpt.get().read(AviatorConf.class);
+      prepareConnConf(conf.getRedisConns(), ConnType.REDIS);
+      prepareConnConf(conf.getMysqlConns(), ConnType.MYSQL);
+      prepareConnConf(conf.getClickhouseConns(), ConnType.CLICKHOUSE);
+    }
   }
 
-  private static YamlReader createConfReader(String confPath, File confFile) throws FileNotFoundException {
+  private static Optional<YamlReader> createConfReader(String confPath, File confFile)
+      throws FileNotFoundException {
     if (confFile.exists()) {
-      return new YamlReader(new FileReader(confFile));
+      return Optional.of(new YamlReader(new FileReader(confFile)));
     } else {
       InputStream resource = Thread.currentThread().getContextClassLoader()
           .getResourceAsStream(confPath);
-      return new YamlReader(new InputStreamReader(resource));
+      if (resource != null) {
+        return Optional.of(new YamlReader(new InputStreamReader(resource)));
+      }
     }
+    return Optional.empty();
   }
 
   public static void prepareConnConf(List<ConnectorConf> confList, ConnType type) {
