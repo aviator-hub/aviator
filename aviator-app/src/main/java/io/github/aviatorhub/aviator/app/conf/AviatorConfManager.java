@@ -2,7 +2,6 @@ package io.github.aviatorhub.aviator.app.conf;
 
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
-import io.github.aviatorhub.aviator.app.AviatorSqlApp;
 import io.github.aviatorhub.aviator.app.annotation.JobDeclare;
 import io.github.aviatorhub.aviator.app.annotation.PerfDeclare;
 import io.github.aviatorhub.aviator.app.annotation.ResourceDeclare;
@@ -27,7 +26,7 @@ public class AviatorConfManager {
   private static final Map<ConnType, Map<String, ConnectorConf>> connMap = new HashMap<>();
 
 
-  public static AviatorJobConf applyJobDeclare(Class<? extends AviatorSqlApp> app) {
+  public static AviatorJobConf applyJobDeclare(Class<?> app) {
     AviatorJobConf aviatorJobConf = new AviatorJobConf();
     JobDeclare jobDeclare = app.getAnnotation(JobDeclare.class);
     PerfDeclare perfDeclare = app.getAnnotation(PerfDeclare.class);
