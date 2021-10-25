@@ -1,7 +1,8 @@
 package io.github.aviatorhub.aviator.app
 
 import io.github.aviatorhub.aviator.app.conf.{AviatorConfManager, AviatorJobConf}
-import io.github.aviatorhub.aviator.app.constant.{CheckpointStateBackend, RunningMode}
+import io.github.aviatorhub.aviator.app.constant.{CheckpointStateBackend, ConnType, RunningMode}
+import io.github.aviatorhub.aviator.app.table.{ClickHouseTableBuilder, ElasticSearchTableBuilder, HbaseTableBuilder, JdbcTableBuilder, RedisTableBuilder}
 import org.apache.commons.lang3.StringUtils
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
@@ -12,6 +13,7 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.table.api.config.{ExecutionConfigOptions, OptimizerConfigOptions}
 import org.apache.flink.table.api.{EnvironmentSettings, TableEnvironment}
+import org.apache.flink.util.Preconditions
 import org.apache.flink.util.Preconditions.checkNotNull
 
 import java.lang
@@ -117,5 +119,106 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
          | )
          |""".stripMargin)
 
+  }
+
+  // ================================================================
+  // == MYSQL TABLE
+  // ================================================================
+  protected def createMysqlTable[E >: Enumeration](schemaStr: String,
+                                                   table: String,
+                                                   mysql: E): Unit = {
+    createMysqlTable(schemaStr, null, table, mysql)
+  }
+
+  protected def createMysqlTable[E >: Enumeration](schemaStr: String,
+                                                   database: String,
+                                                   table: String,
+                                                   mysql: E): Unit = {
+    mysqlTableBuilder(schemaStr, table, mysql)
+      .database(database).build()
+  }
+
+  protected def mysqlTableBuilder[E >: Enumeration](schemaStr: String,
+                                                    table: String,
+                                                    mysql: E): JdbcTableBuilder = {
+    val mysqlConf = AviatorConfManager.getConnConf(mysql.toString, ConnType.MYSQL)
+    Preconditions.checkNotNull(mysqlConf)
+    new JdbcTableBuilder(schemaStr, mysqlConf, tableEnv)
+      .table(table)
+      .driver("com.mysql.jdbc.Driver")
+  }
+
+  // ================================================================
+  // == CLICKHOUSE TABLE
+  // ================================================================
+  protected def createClickhouseTable[E >: Enumeration](schemaStr: String,
+                                                        table: String,
+                                                        clickhouse: E): Unit = {
+    createClickhouseTable(schemaStr, null, table, clickhouse)
+  }
+
+  protected def createClickhouseTable[E >: Enumeration](schemaStr: String,
+                                                        database: String,
+                                                        table: String,
+                                                        clickhouse: E): Unit = {
+    clickhouseTableBuilder(schemaStr, table, clickhouse)
+      .database(database)
+      .build()
+  }
+
+  protected def clickhouseTableBuilder[E >: Enumeration](schemaStr: String,
+                                                         table: String,
+                                                         clickhouse: E): ClickHouseTableBuilder = {
+    val clickhouseConn = AviatorConfManager.getConnConf(clickhouse.toString, ConnType.CLICKHOUSE)
+    Preconditions.checkNotNull(clickhouseConn)
+    new ClickHouseTableBuilder(schemaStr, clickhouseConn, tableEnv)
+      .table(table)
+  }
+
+  // ================================================================
+  // == REDIS TABLE
+  // ================================================================
+  protected def createRedisTable[E >: Enumeration](schemaStr: String,
+                                                   redis: E): Unit = {
+    redisTableBuilder(schemaStr, redis).build()
+  }
+
+  protected def redisTableBuilder[E >: Enumeration](schemaStr: String,
+                                                    redis: E): RedisTableBuilder = {
+    val redisConn = AviatorConfManager.getConnConf(redis.toString, ConnType.REDIS)
+    Preconditions.checkNotNull(redisConn)
+    new RedisTableBuilder(schemaStr, redisConn, tableEnv)
+  }
+
+  // ================================================================
+  // == HBASE TABLE
+  // ================================================================
+  protected def createHbaseTable[E >: Enumeration](schemaStr: String,
+                                                   hbase: E): Unit = {
+    hbaseTableBuilder(schemaStr, hbase).build()
+  }
+
+  protected def hbaseTableBuilder[E >: Enumeration](schemaStr: String,
+                                                    hbase: E): HbaseTableBuilder = {
+    val hbaseConn = AviatorConfManager.getConnConf(hbase.toString, ConnType.HBASE)
+    Preconditions.checkNotNull(hbaseConn)
+    new HbaseTableBuilder(schemaStr, hbaseConn, tableEnv)
+  }
+
+  // ================================================================
+  // == ELASTICSEARCH TABLE
+  // ================================================================
+  protected def createElasticsearchTable[E >: Enumeration](schemaStr: String,
+                                                           index: String,
+                                                           elasticsearch: E): Unit = {
+    elasticsearchTableBuilder(schemaStr, index, elasticsearch).build()
+  }
+
+  protected def elasticsearchTableBuilder[E >: Enumeration](schemaStr: String,
+                                                            index: String,
+                                                            elasticsearch: E): ElasticSearchTableBuilder = {
+    val conn = AviatorConfManager.getConnConf(elasticsearch.toString, ConnType.ELASTICSEARCH)
+    Preconditions.checkNotNull(conn)
+    new ElasticSearchTableBuilder(schemaStr, conn, tableEnv).table(index)
   }
 }
