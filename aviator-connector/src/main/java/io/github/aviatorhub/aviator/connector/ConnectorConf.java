@@ -2,6 +2,7 @@ package io.github.aviatorhub.aviator.connector;
 
 import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -156,6 +157,13 @@ public class ConnectorConf implements Serializable {
 
   public void setProps(Map<String, String> props) {
     this.props = props;
+  }
+
+  public void setProp(String key, String value) {
+    if (this.props == null) {
+      props = new HashMap<>();
+    }
+    props.put(key, value);
   }
 
   public void setName(String name) {

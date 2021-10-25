@@ -1,1 +1,10 @@
+org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory
+org.apache.flink.streaming.connectors.kafka.table.UpsertKafkaDynamicTableFactory
+
+io.github.aviatorhub.aviator.connector.redis.RedisDynamicTableFactory
+org.apache.flink.streaming.connectors.elasticsearch.table.Elasticsearch7DynamicSinkFactory
+org.apache.flink.connector.hbase2.HBase2DynamicTableFactory
+
 io.github.aviatorhub.aviator.connector.clickhouse.ClickHouseDynamicTableFactory
+org.apache.flink.connector.jdbc.table.JdbcDynamicTableFactory
+
