@@ -5,6 +5,7 @@ import io.github.aviatorhub.aviator.app.constant.{CheckpointStateBackend, ConnTy
 import io.github.aviatorhub.aviator.app.table.{ClickHouseTableBuilder, ElasticSearchTableBuilder, HbaseTableBuilder, JdbcTableBuilder, RedisTableBuilder}
 import io.github.aviatorhub.aviator.connector.ConnectorConf
 import org.apache.commons.lang3.StringUtils
+import org.apache.flink.api.common.JobStatus
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
 import org.apache.flink.configuration.{ConfigOption, PipelineOptions}
@@ -31,14 +32,33 @@ import java.util.concurrent.TimeUnit
 abstract class AviatorSqlApp(var jobConf: AviatorJobConf = null,
                              var tableEnv: TableEnvironment = null) {
 
+  def process(): TableResult
 
-  protected def init(args: Array[String]): Unit = {
+  protected def runJob(args: Array[String]): Unit = {
     initConf()
     prepareTableEnv()
-    prepareContainerEnv()
-    applyConf()
+    var result: TableResult = null
+    try {
+      prepareContainerEnv()
+      applyConf()
+      result = process()
+
+    } finally {
+      if (result != null) {
+        var status = result.getJobClient.get().getJobStatus.get()
+        while (isNotStop(status)) {
+          status = result.getJobClient.get().getJobStatus.get()
+        }
+      }
+      destroyContainerEnv()
+    }
   }
 
+  val finishedStatusSet = Set(JobStatus.FINISHED, JobStatus.FAILED, JobStatus.CANCELED)
+
+  def isNotStop(status: JobStatus): Boolean = {
+    !finishedStatusSet.contains(status)
+  }
 
   private def initConf(): Unit = {
     AviatorConfManager.loadAviatorConf()

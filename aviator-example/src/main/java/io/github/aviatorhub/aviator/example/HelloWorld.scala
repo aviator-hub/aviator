@@ -1,6 +1,7 @@
 package io.github.aviatorhub.aviator.example
 
 import io.github.aviatorhub.aviator.app.AviatorSqlApp
+import org.apache.flink.table.api.TableResult
 
 /**
  * HelloWorld example
@@ -11,7 +12,11 @@ import io.github.aviatorhub.aviator.app.AviatorSqlApp
 object HelloWorld extends AviatorSqlApp() {
 
   def main(args: Array[String]): Unit = {
-    init(args)
+    runJob(args)
+
+  }
+
+  override def process(): TableResult = {
     createPrintTable(
       s"""
          | CREATE TABLE HELLO (
