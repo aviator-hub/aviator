@@ -1,6 +1,6 @@
 projectName: aviator
 
-redisConnectors:
+redisList:
   - name: test
     address: 127.0.0.1:6379
     parallel: 3  # 默认的并行度

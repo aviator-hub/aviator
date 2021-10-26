@@ -10,14 +10,24 @@ import java.util.List;
  */
 public class AviatorConf {
 
+  private String projectName;
   private String jobName;
 
-  private List<ConnectorConf> redisConns;
-  private List<ConnectorConf> clickhouseConns;
-  private List<ConnectorConf> mysqlConns;
-  private List<ConnectorConf> elasticsearchConns;
+  private List<ConnectorConf> mysqlList;
+  private List<ConnectorConf> redisList;
+  private List<ConnectorConf> hbaseList;
+  private List<ConnectorConf> elasticsearchList;
+  private List<ConnectorConf> clickhouseList;
 
   public AviatorConf() {
+  }
+
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
   }
 
   public String getJobName() {
@@ -28,39 +38,47 @@ public class AviatorConf {
     this.jobName = jobName;
   }
 
-  public List<ConnectorConf> getRedisConns() {
-    return redisConns;
+  public List<ConnectorConf> getRedisList() {
+    return redisList;
   }
 
-  public void setRedisConns(
-      List<ConnectorConf> redisConns) {
-    this.redisConns = redisConns;
+  public void setRedisList(
+      List<ConnectorConf> redisList) {
+    this.redisList = redisList;
   }
 
-  public List<ConnectorConf> getClickhouseConns() {
-    return clickhouseConns;
+  public List<ConnectorConf> getClickhouseList() {
+    return clickhouseList;
   }
 
-  public void setClickhouseConns(
-      List<ConnectorConf> clickhouseConns) {
-    this.clickhouseConns = clickhouseConns;
+  public void setClickhouseList(
+      List<ConnectorConf> clickhouseList) {
+    this.clickhouseList = clickhouseList;
   }
 
-  public List<ConnectorConf> getMysqlConns() {
-    return mysqlConns;
+  public List<ConnectorConf> getMysqlList() {
+    return mysqlList;
   }
 
-  public void setMysqlConns(
-      List<ConnectorConf> mysqlConns) {
-    this.mysqlConns = mysqlConns;
+  public void setMysqlList(
+      List<ConnectorConf> mysqlList) {
+    this.mysqlList = mysqlList;
   }
 
-  public List<ConnectorConf> getElasticsearchConns() {
-    return elasticsearchConns;
+  public List<ConnectorConf> getElasticsearchList() {
+    return elasticsearchList;
   }
 
-  public void setElasticsearchConns(
-      List<ConnectorConf> elasticsearchConns) {
-    this.elasticsearchConns = elasticsearchConns;
+  public void setElasticsearchList(
+      List<ConnectorConf> elasticsearchList) {
+    this.elasticsearchList = elasticsearchList;
+  }
+
+  public List<ConnectorConf> getHbaseList() {
+    return hbaseList;
+  }
+
+  public void setHbaseList(List<ConnectorConf> hbaseList) {
+    this.hbaseList = hbaseList;
   }
 }

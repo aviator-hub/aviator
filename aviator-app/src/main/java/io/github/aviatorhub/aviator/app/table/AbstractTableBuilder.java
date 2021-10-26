@@ -118,6 +118,11 @@ public abstract class AbstractTableBuilder<T> extends TableOptBuilder {
     return instance;
   }
 
+  public T keyPrefix(String keyPrefix) {
+    conf.setKeyPrefix(keyPrefix);
+    return instance;
+  }
+
   protected T addProp(String key, String value) {
     conf.setProp(key, value);
     return instance;
@@ -182,7 +187,7 @@ public abstract class AbstractTableBuilder<T> extends TableOptBuilder {
     } else if (KEY_PREFIX.equals(opt)) {
       appendOpt(builder, KEY_PREFIX, conf.getKeyPrefix());
     } else if (SINK_DATA_EXPIRE.equals(opt)) {
-      appendOpt(builder, SINK_DATA_EXPIRE, conf.getKeyPrefix());
+      appendOpt(builder, SINK_DATA_EXPIRE, conf.getDataExpireSecond());
     } else if (SINK_BUFFER_COMPACTION.equals(opt)) {
       appendOpt(builder, SINK_BUFFER_COMPACTION, conf.getSinkBufferCompaction());
     } else {

@@ -78,7 +78,7 @@
 
     <!-- declare test dependencies version-->
     <junit.version>5.8.1</junit.version>
-    <testcontainers.version>1.16.0</testcontainers.version>
+    <testcontainers.version>1.16.2</testcontainers.version>
   </properties>
 
   <dependencies>

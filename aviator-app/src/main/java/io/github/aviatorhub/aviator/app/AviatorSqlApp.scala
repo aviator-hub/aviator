@@ -1,8 +1,9 @@
 package io.github.aviatorhub.aviator.app
 
 import io.github.aviatorhub.aviator.app.conf.{AviatorConfManager, AviatorJobConf}
-import io.github.aviatorhub.aviator.app.constant.{CheckpointStateBackend, ConnType, RunningMode}
+import io.github.aviatorhub.aviator.app.constant.{CheckpointStateBackend, ConnType, ContainerEnv, RunningMode}
 import io.github.aviatorhub.aviator.app.table.{ClickHouseTableBuilder, ElasticSearchTableBuilder, HbaseTableBuilder, JdbcTableBuilder, RedisTableBuilder}
+import io.github.aviatorhub.aviator.connector.ConnectorConf
 import org.apache.commons.lang3.StringUtils
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.time.Time
@@ -12,7 +13,7 @@ import org.apache.flink.runtime.state.hashmap.HashMapStateBackend
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 import org.apache.flink.table.api.config.{ExecutionConfigOptions, OptimizerConfigOptions}
-import org.apache.flink.table.api.{EnvironmentSettings, TableEnvironment}
+import org.apache.flink.table.api.{EnvironmentSettings, TableEnvironment, TableResult}
 import org.apache.flink.util.Preconditions
 import org.apache.flink.util.Preconditions.checkNotNull
 
@@ -27,12 +28,14 @@ import java.util.concurrent.TimeUnit
  * @param tableEnv
  * @since 2021/10/22
  */
-class AviatorSqlApp(var jobConf: AviatorJobConf = null,
-                    var tableEnv: TableEnvironment = null) {
+abstract class AviatorSqlApp(var jobConf: AviatorJobConf = null,
+                             var tableEnv: TableEnvironment = null) {
+
 
   protected def init(args: Array[String]): Unit = {
     initConf()
     prepareTableEnv()
+    prepareContainerEnv()
     applyConf()
   }
 
@@ -68,6 +71,25 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
     val settings = EnvironmentSettings.newInstance()
       .useBlinkPlanner().inStreamingMode().build()
     tableEnv = StreamTableEnvironment.create(streamEnv, settings)
+  }
+
+  def prepareContainerEnv(): Unit = {
+    if (jobConf.getRunningMode.equals(RunningMode.TEST)) {
+      val envArray = AviatorConfManager.getContainerEnvs(this.getClass)
+      for (env <- envArray) {
+        env.getContainer.start()
+      }
+    }
+  }
+
+
+  def destroyContainerEnv(): Unit = {
+    if (jobConf.getRunningMode.equals(RunningMode.TEST)) {
+      val envArray = AviatorConfManager.getContainerEnvs(this.getClass)
+      for (env <- envArray) {
+        env.getContainer.stop()
+      }
+    }
   }
 
   private def applyConf(): Unit = {
@@ -180,13 +202,24 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
   // ================================================================
   protected def createRedisTable[E >: Enumeration](schemaStr: String,
                                                    redis: E): Unit = {
-    redisTableBuilder(schemaStr, redis).build()
+    createRedisTable(schemaStr, getNameWithVersion(jobConf.getJobName), redis)
+  }
+
+  protected def createRedisTable[E >: Enumeration](schemaStr: String,
+                                                   keyPrefix: String,
+                                                   redis: E): Unit = {
+    redisTableBuilder(schemaStr, redis)
+      .keyPrefix(keyPrefix)
+      .build()
   }
 
   protected def redisTableBuilder[E >: Enumeration](schemaStr: String,
                                                     redis: E): RedisTableBuilder = {
-    val redisConn = AviatorConfManager.getConnConf(redis.toString, ConnType.REDIS)
-    Preconditions.checkNotNull(redisConn)
+    var redisConn = AviatorConfManager.getConnConf(redis.toString, ConnType.REDIS)
+    if (redisConn == null && RunningMode.TEST.eq(jobConf.getRunningMode)) {
+      redisConn = new ConnectorConf()
+      redisConn.setAddress("127.0.0.1:" + ContainerEnv.REDIS.getContainer.getMappedPort(6379))
+    }
     new RedisTableBuilder(schemaStr, redisConn, tableEnv)
   }
 
@@ -221,4 +254,5 @@ class AviatorSqlApp(var jobConf: AviatorJobConf = null,
     Preconditions.checkNotNull(conn)
     new ElasticSearchTableBuilder(schemaStr, conn, tableEnv).table(index)
   }
+
 }
