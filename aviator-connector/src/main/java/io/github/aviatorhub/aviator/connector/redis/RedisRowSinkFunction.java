@@ -22,9 +22,7 @@ public class RedisRowSinkFunction extends RichSinkFunction<RowData> implements C
   private final KeyExtractor keyExtractor;
   private final RowDataToJsonConverter valueConverter;
 
-  private transient AviatorPartitioner<RowData> partitioner;
   private transient AviatorBufferManager<RowData> bufferManager;
-  private transient AviatorFlusher<RowData> flusher;
 
   public RedisRowSinkFunction(ConnectorConf conf,
       KeyExtractor keyExtractor,
@@ -37,8 +35,8 @@ public class RedisRowSinkFunction extends RichSinkFunction<RowData> implements C
   @Override
   public void open(Configuration parameters) throws Exception {
     super.open(parameters);
-    flusher = new RedisRowFlusher(conf, keyExtractor, valueConverter);
-    partitioner = new AviatorRowPartitioner();
+    AviatorFlusher<RowData> flusher = new RedisRowFlusher(conf, keyExtractor, valueConverter);
+    AviatorPartitioner<RowData> partitioner = new AviatorRowPartitioner();
     bufferManager = new AviatorBufferManager(conf.getBufferConf(),
         RowData.class, partitioner, flusher);
     bufferManager.init();

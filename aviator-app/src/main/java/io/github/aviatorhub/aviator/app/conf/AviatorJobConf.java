@@ -26,7 +26,7 @@ public class AviatorJobConf {
 
   @Parameter(names = {"-rm", "-running-mode"},
       description = "different running mode may load different configuration, default is TEST")
-  private RunningMode runningMode;
+  private RunningMode runningMode = RunningMode.TEST;
 
   // =============================================
   // == Checkpoint

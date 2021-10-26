@@ -2,10 +2,12 @@ package io.github.aviatorhub.aviator.app.conf;
 
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
+import io.github.aviatorhub.aviator.app.annotation.ContainerEnvDeclare;
 import io.github.aviatorhub.aviator.app.annotation.JobDeclare;
 import io.github.aviatorhub.aviator.app.annotation.PerfDeclare;
 import io.github.aviatorhub.aviator.app.annotation.ResourceDeclare;
 import io.github.aviatorhub.aviator.app.constant.ConnType;
+import io.github.aviatorhub.aviator.app.constant.ContainerEnv;
 import io.github.aviatorhub.aviator.connector.ConnectorConf;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -24,14 +27,17 @@ public class AviatorConfManager {
 
   private static final String DEFAULT_AVIATOR_CONF_PATH = "aviator.yml";
   private static final Map<ConnType, Map<String, ConnectorConf>> connMap = new HashMap<>();
-
-
   public static AviatorJobConf applyJobDeclare(Class<?> app) {
     AviatorJobConf aviatorJobConf = new AviatorJobConf();
     JobDeclare jobDeclare = app.getAnnotation(JobDeclare.class);
     PerfDeclare perfDeclare = app.getAnnotation(PerfDeclare.class);
     ResourceDeclare resourceDeclare = app.getAnnotation(ResourceDeclare.class);
     return aviatorJobConf;
+  }
+
+  public static ContainerEnv[] getContainerEnvs(Class<?> app) {
+    ContainerEnvDeclare containerEnvDeclare = app.getAnnotation(ContainerEnvDeclare.class);
+    return containerEnvDeclare != null ? containerEnvDeclare.value() : new ContainerEnv[0];
   }
 
   public static void loadAviatorConf() throws FileNotFoundException, YamlException {
@@ -43,9 +49,11 @@ public class AviatorConfManager {
     Optional<YamlReader> readerOpt = createConfReader(confPath, confFile);
     if (readerOpt.isPresent()) {
       AviatorConf conf = readerOpt.get().read(AviatorConf.class);
-      prepareConnConf(conf.getRedisConns(), ConnType.REDIS);
-      prepareConnConf(conf.getMysqlConns(), ConnType.MYSQL);
-      prepareConnConf(conf.getClickhouseConns(), ConnType.CLICKHOUSE);
+      prepareConnConf(conf.getMysqlList(), ConnType.MYSQL);
+      prepareConnConf(conf.getRedisList(), ConnType.REDIS);
+      prepareConnConf(conf.getHbaseList(), ConnType.HBASE);
+      prepareConnConf(conf.getElasticsearchList(), ConnType.ELASTICSEARCH);
+      prepareConnConf(conf.getClickhouseList(), ConnType.CLICKHOUSE);
     }
   }
 
@@ -64,10 +72,14 @@ public class AviatorConfManager {
   }
 
   public static void prepareConnConf(List<ConnectorConf> confList, ConnType type) {
+    if (CollectionUtils.isEmpty(confList)) {
+      return;
+    }
+
     Map<String, ConnectorConf> map = connMap.computeIfAbsent(type, key -> new HashMap<>());
     for (ConnectorConf conf : confList) {
       if (StringUtils.isBlank(conf.getName())) {
-        log.warn("empty connection name with connection information: {}", conf.toString());
+        log.warn("empty connection name with connection information: {}", conf);
         continue;
       }
       if (map.containsKey(conf.getName())) {

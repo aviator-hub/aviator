@@ -5,17 +5,15 @@ import io.github.aviatorhub.aviator.connector.ConnectorConf;
 import io.github.aviatorhub.aviator.connector.ConnectorConfOptions;
 import java.util.Set;
 import org.apache.flink.configuration.ConfigOption;
-import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.table.catalog.ResolvedSchema;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.factories.DynamicTableSinkFactory;
-import org.apache.flink.table.factories.FactoryUtil;
 import org.elasticsearch.common.util.set.Sets;
 
 public class ClickHouseDynamicTableFactory extends AbstractAviatorDynamicTableFactory implements
     DynamicTableSinkFactory {
 
-  private static final String IDENTIFIER = "aviator-clickhouse";
+  public static final String IDENTIFIER = "aviator-clickhouse";
 
   @Override
   public DynamicTableSink createDynamicTableSink(Context context) {

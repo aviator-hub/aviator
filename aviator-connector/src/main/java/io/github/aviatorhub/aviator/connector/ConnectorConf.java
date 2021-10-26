@@ -2,15 +2,13 @@ package io.github.aviatorhub.aviator.connector;
 
 import io.github.aviatorhub.aviator.core.AviatorBufferConf;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
-@Getter
-@NoArgsConstructor
-@ToString
 public class ConnectorConf implements Serializable {
 
   private String name;
@@ -38,11 +36,15 @@ public class ConnectorConf implements Serializable {
   private Boolean sinkBufferCompaction = false;
 
   private String keyPrefix = "";
-  private Integer dataExpireSecond;
+  private Integer dataExpireSecond = 3600 * 24;
 
-  private EnvMode envMode = EnvMode.CLUSTER ;
+  // TODO run at production.
+  private EnvMode envMode = EnvMode.SINGLETON ;
 
   private Map<String, String> props;
+
+  public ConnectorConf() {
+  }
 
   public void setAddress(String address) {
     this.address = address;
@@ -158,7 +160,120 @@ public class ConnectorConf implements Serializable {
     this.props = props;
   }
 
+  public void setProp(String key, String value) {
+    if (this.props == null) {
+      props = new HashMap<>();
+    }
+    props.put(key, value);
+  }
+
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public String getDatabase() {
+    return database;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public String getPasswd() {
+    return passwd;
+  }
+
+  public Integer getParallel() {
+    return parallel;
+  }
+
+  public Integer getCoreConnSize() {
+    return coreConnSize;
+  }
+
+  public Integer getMaxConnSize() {
+    return maxConnSize;
+  }
+
+  public Integer getCacheSize() {
+    return cacheSize;
+  }
+
+  public Integer getCacheTime() {
+    return cacheTime;
+  }
+
+  public Boolean getOrdered() {
+    return ordered;
+  }
+
+  public Integer getSinkRetryCnt() {
+    return sinkRetryCnt;
+  }
+
+  public Integer getSinkBatchSize() {
+    return sinkBatchSize;
+  }
+
+  public Integer getSinkFlushInterval() {
+    return sinkFlushInterval;
+  }
+
+  public Boolean getSinkBufferCompaction() {
+    return sinkBufferCompaction;
+  }
+
+  public String getKeyPrefix() {
+    return keyPrefix;
+  }
+
+  public Integer getDataExpireSecond() {
+    return dataExpireSecond;
+  }
+
+  public EnvMode getEnvMode() {
+    return envMode;
+  }
+
+  public Map<String, String> getProps() {
+    return props;
+  }
+
+  @Override
+  public String toString() {
+    return "ConnectorConf{" +
+        "name='" + name + '\'' +
+        ", address='" + address + '\'' +
+        ", database='" + database + '\'' +
+        ", table='" + table + '\'' +
+        ", user='" + user + '\'' +
+        ", passwd='" + passwd + '\'' +
+        ", parallel=" + parallel +
+        ", coreConnSize=" + coreConnSize +
+        ", maxConnSize=" + maxConnSize +
+        ", cacheSize=" + cacheSize +
+        ", cacheTime=" + cacheTime +
+        ", ordered=" + ordered +
+        ", sinkRetryCnt=" + sinkRetryCnt +
+        ", sinkBatchSize=" + sinkBatchSize +
+        ", sinkFlushInterval=" + sinkFlushInterval +
+        ", sinkBufferCompaction=" + sinkBufferCompaction +
+        ", keyPrefix='" + keyPrefix + '\'' +
+        ", dataExpireSecond=" + dataExpireSecond +
+        ", envMode=" + envMode +
+        ", props=" + props +
+        '}';
   }
 }
